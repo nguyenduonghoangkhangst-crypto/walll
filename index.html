@@ -14,7 +14,7 @@
     });
   }
 </script>
-    <link rel="icon" href="assets/icon.png">
+    <link rel="icon" href="/icon.png">
     <meta name="theme-color" content="#667eea">
     <style>
         * {
@@ -227,10 +227,10 @@
         // Load fonts using Web Font Loader
         const loadFonts = async () => {
             try {
-                const fontFace1 = new FontFace('BigShouldersText', 'url(assets/BigShouldersText-Medium.ttf)'); format("truetype")
-                const fontFace2 = new FontFace('RobotoCondensed', 'url(assets/RobotoCondensed-Regular.ttf)');format("truetype")
-                const fontFace3 = new FontFace('Roboto', 'url(assets/Roboto-Regular.ttf)');format("truetype")
-                const fontFace4 = new FontFace('RobotoMedium', 'url(assets/Roboto-Medium.ttf)');format("truetype")
+                const fontFace1 = new FontFace('BigShouldersText', 'url(/BigShouldersText-Medium.ttf)'); format("truetype")
+                const fontFace2 = new FontFace('RobotoCondensed', 'url(/RobotoCondensed-Regular.ttf)');format("truetype")
+                const fontFace3 = new FontFace('Roboto', 'url(/Roboto-Regular.ttf)');format("truetype")
+                const fontFace4 = new FontFace('RobotoMedium', 'url(/Roboto-Medium.ttf)');format("truetype")
                 await Promise.all([
                     fontFace1.load(),
                     fontFace2.load(),
@@ -656,7 +656,7 @@
             // Tải ảnh 
             const checkmark = new Image();
             checkmark.crossOrigin = "anonymous"; 
-            checkmark.src = "https://raw.githubusercontent.com/nguyenduonghoangkhangst-crypto/repo/refs/heads/main/checkmark.png"
+            checkmark.src = "/checkmark.png"
              await new Promise((resolve, reject) => {
                 checkmark.onload = resolve;
                 checkmark.onerror = () => reject('Không thể tải checkmark.png');
@@ -739,4 +739,5 @@
         });
     </script>
 </body>
+
 </html>
