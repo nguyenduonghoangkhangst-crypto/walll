@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Watermark</title>
+    <link rel="manifest" href="manifest.json">
+    <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js")
+        .then(reg => console.log("✅ Service Worker registered:", reg))
+        .catch(err => console.error("❌ SW registration failed:", err));
+    });
+  }
+</script>
+    <link rel="icon" href="assets/icon.png">
+    <meta name="theme-color" content="#667eea">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="time"], input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .preview {
+            max-width: 100%;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .download-link {
+            display: none;
+            margin-top: 15px;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .orientation-info {
+            background: #f8f9ff;
+            border: 1px solid #667eea;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
+            color: #667eea;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Photo Watermark</h1>
+        <p style="text-align:center; color:#667eea; font-size:18px; margin-bottom:20px;">Ứng dụng đánh dấu thời gian địa điểm, không dùng cho mục đích xấu gây thiệt hại đến các cá nhân tổ chức. Người dùng tự chịu trách nhiệm cho hành vi của mình!</p>
+        
+        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+            <p>📁 Chọn tối đa 5 ảnh hoặc kéo thả vào đây</p>
+            <input type="file" id="imageInput" accept="image/*" multiple>
+        </div>
+        
+        <div id="previewList"></div>
+        
+        <div id="orientationInfo" class="orientation-info">
+            <span id="orientationText"></span>
+        </div>
+        
+        <div class="form-group">
+            <label for="dateInput">📅 Ngày:</label>
+            <input type="date" id="dateInput">
+        </div>
+        
+        <div class="form-group">
+            <label for="timeInput">🕐 Giờ:</label>
+            <input type="time" id="timeInput">
+        </div>
+        
+        <div class="form-group">
+            <label for="dayInput">📋 Thứ:</label>
+            <input type="text" id="dayInput" placeholder="VD: Thứ hai">
+        </div>
+        
+        <div class="form-group">
+            <label for="locationInput">📍 Địa điểm:</label>
+            <input type="text" id="locationInput" placeholder="VD: Hà Nội, Việt Nam">
+        </div>
+        
+        <div class="progress">
+            <div class="progress-bar"></div>
+        </div>
+        
+        <button class="btn" id="processBtn" disabled>Tạo Watermark</button>
+        <button class="btn" id="downloadAllBtn" style="display:none;margin-top:10px;">💾 Tải tất cả</button>
+        
+        <canvas id="canvas"></canvas>
+        
+        <a id="downloadLink" class="download-link btn" download="watermarked_image.jpg">💾 Tải về</a>
+    </div>
+
+    <script src="https://unpkg.com/pica@8.0.0/dist/pica.min.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+
+    <script>
+        // Load fonts using Web Font Loader
+        const loadFonts = async () => {
+            try {
+                const fontFace1 = new FontFace('BigShouldersText', 'url(assets/BigShouldersText-Medium.ttf)'); format("truetype")
+                const fontFace2 = new FontFace('RobotoCondensed', 'url(assets/RobotoCondensed-Regular.ttf)');format("truetype")
+                const fontFace3 = new FontFace('Roboto', 'url(assets/Roboto-Regular.ttf)');format("truetype")
+                const fontFace4 = new FontFace('RobotoMedium', 'url(assets/Roboto-Medium.ttf)');format("truetype")
+                await Promise.all([
+                    fontFace1.load(),
+                    fontFace2.load(),
+                    fontFace3.load(),
+                    fontFace4.load()
+                ]).then(fonts => {
+                    fonts.forEach(font => document.fonts.add(font));
+                });
+            } catch (e) {
+                console.error('Lỗi tải font:', e);
+                alert('Không thể tải font. Vui lòng kiểm tra file font trong thư mục assets.');
+            }
+        };
+
+        // Initialize PWA
+        window.onload = async () => {
+            await loadFonts();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            }
+
+            // Set default values
+            const now = new Date();
+            document.getElementById('dateInput').value = now.toISOString().split('T')[0];
+            document.getElementById('timeInput').value = now.toTimeString().slice(0,5);
+            document.getElementById('dayInput').value = getDayName(now.getDay());
+            
+            // Get location if available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude.toFixed(4);
+                    const lon = position.coords.longitude.toFixed(4);
+                    // Gọi API reverse geocoding
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=vi`);
+                        const data = await response.json();
+                        if (data && data.display_name) {
+                            document.getElementById('locationInput').value = data.display_name;
+                        } else {
+                            document.getElementById('locationInput').value = `${lat}, ${lon}`;
+                            alert('Không lấy được tên địa danh, vui lòng nhập tay!');
+                        }
+                    } catch (e) {
+                        document.getElementById('locationInput').value = `${lat}, ${lon}`;
+                        alert('Không lấy được tên địa danh, vui lòng nhập tay!');
+                    }
+                }, () => {
+                    document.getElementById('locationInput').value = 'Hà Nội, Việt Nam';
+                    alert('Không lấy được vị trí, vui lòng nhập địa danh thủ công!');
+                });
+            }
+        };
+
+        const imageInput = document.getElementById('imageInput');
+        const previewList = document.getElementById('previewList');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const processBtn = document.getElementById('processBtn');
+        const downloadLink = document.getElementById('downloadLink');
+        const uploadArea = document.querySelector('.upload-area');
+        const progress = document.querySelector('.progress');
+        const progressBar = document.querySelector('.progress-bar');
+        const orientationInfo = document.getElementById('orientationInfo');
+        const orientationText = document.getElementById('orientationText');
+
+        let selectedImages = [];
+        let isLandscapeList = [];
+
+        function getDayName(dayIndex) {
+            const days = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            return days[dayIndex];
+        }
+
+        function getMonthName(monthIndex) {
+            const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
+                            'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+            return months[monthIndex];
+        }
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).slice(0, 5);
+            handleImagesSelect(files);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).slice(0, 5);
+            handleImagesSelect(files);
+        });
+
+        function handleImagesSelect(files) {
+            if (files.length === 0) return;
+            if (files.length > 5) {
+                alert('Chỉ chọn tối đa 5 ảnh!');
+                return;
+            }
+            selectedImages = [];
+            isLandscapeList = [];
+            previewList.innerHTML = '';
+            let loaded = 0;
+            files.forEach((file, idx) => {
+                if (!file.type.startsWith('image/')) {
+                    alert('Vui lòng chọn file ảnh!');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        selectedImages[idx] = img;
+                        isLandscapeList[idx] = img.width > img.height;
+                        // Hiển thị preview nhỏ
+                        const div = document.createElement('div');
+                        div.style.margin = '10px 0';
+                        div.innerHTML = `<img src="${e.target.result}" style="max-width:80px;max-height:80px;border-radius:6px;vertical-align:middle;margin-right:10px;"> <span>${file.name} (${img.width}x${img.height})</span>`;
+                        previewList.appendChild(div);
+                        loaded++;
+                        if (loaded === files.length) {
+                            processBtn.disabled = false;
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        processBtn.addEventListener('click', async () => {
+            if (selectedImages.length === 0) {
+                alert('Vui lòng chọn ảnh!');
+                return;
+            }
+            progress.style.display = 'block';
+            progressBar.style.width = '10%';
+            // Lấy giá trị form
+            const dateInput = document.getElementById('dateInput').value;
+            const timeStr = document.getElementById('timeInput').value;
+            const dayStr = document.getElementById('dayInput').value;
+            const locationStr = document.getElementById('locationInput').value;
+            if (!dateInput || !timeStr || !dayStr || !locationStr) {
+                alert('Vui lòng điền đầy đủ các trường!');
+                progress.style.display = 'none';
+                return;
+            }
+            // Xóa các link tải cũ
+            document.querySelectorAll('.download-link').forEach(e => e.remove());
+            // Tính thời gian bắt đầu
+            let [h, m] = timeStr.split(':').map(Number);
+            let baseDate = new Date(dateInput);
+            baseDate.setHours(h, m, 0, 0);
+            let blobs = [];
+            for (let i = 0; i < selectedImages.length; i++) {
+                progressBar.style.width = `${10 + i * (80/selectedImages.length)}%`;
+                let img = selectedImages[i];
+                let isLandscape = isLandscapeList[i];
+                // Tính thời gian cho ảnh này
+                let thisDate = new Date(baseDate.getTime() + i * 60000); // +1 phút mỗi ảnh
+                let thisTimeStr = thisDate.toTimeString().slice(0,5);
+                let thisDayStr = dayStr;
+                let day = thisDate.getDate().toString().padStart(2, '0');
+                let month = (thisDate.getMonth() + 1).toString();
+                let dateStr = `${day} Tháng ${month},${thisDate.getFullYear()}`;
+                // Kích thước canvas
+                const scale = 2;
+                let targetWidth = isLandscape ? 1280 : 960;
+                let targetHeight = isLandscape ? 960 : 1280;
+                canvas.width = targetWidth * scale;
+                canvas.height = targetHeight * scale;
+                canvas.style.display = 'block';
+                // Vẽ ảnh
+                ctx.drawImage(img, 0, 0, targetWidth * scale, targetHeight * scale);
+                // Vẽ watermark
+                if (isLandscape) {
+                    await applyLandscapeLayout(dateStr, thisTimeStr, thisDayStr, locationStr, scale);
+                } else {
+                    await applyPortraitLayout(dateStr, thisTimeStr, thisDayStr, locationStr, scale);
+                }
+                // Xuất blob và tạo link tải
+                await new Promise(resolve => {
+                    canvas.toBlob((blob) => {
+                        blobs[i] = blob;
+                        const url = URL.createObjectURL(blob);
+                        const now = new Date();
+                        const fileName = `watermark_${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}_${i+1}.jpg`;
+                        const a = document.createElement('a');
+                        a.className = 'download-link btn';
+                        a.download = fileName;
+                        a.href = url;
+                        a.textContent = `💾 Tải ảnh ${i+1}`;
+                        a.style.display = 'block';
+                        a.style.marginTop = '10px';
+                        document.querySelector('.container').appendChild(a);
+                        resolve();
+                    }, 'image/jpeg', 0.95);
+                });
+            }
+            progressBar.style.width = '100%';
+            progress.style.display = 'none';
+            document.getElementById('downloadAllBtn').style.display = 'block';
+            document.getElementById('downloadAllBtn').onclick = function() {
+                // Tự động click vào từng link tải ảnh
+                const links = document.querySelectorAll('.download-link');
+                let i = 0;
+                function triggerDownload() {
+                    if (i < links.length) {
+                        links[i].click();
+                        i++;
+                        setTimeout(triggerDownload, 700); // Đợi 700ms giữa các lần tải
+                    }
+                }
+                triggerDownload();
+            };
+        });
+
+        async function applyLandscapeLayout(dateStr, timeStr, dayStr, locationStr, scale) {
+    ctx.textBaseline = 'top';
+
+    const paddingX = 57 * scale;
+    const bottomY = canvas.height - 72 * scale;
+    const maxWidth = canvas.width - paddingX * 2;
+    // Split location text into lines
+    ctx.font = `${39 * scale}px RobotoCondensed`;
+
+    const words = locationStr.split(" ");
+    let lines = [];
+    let current = "";
+
+    for (let w of words) {
+        const test = current ? current + " " + w : w;
+        if (ctx.measureText(test).width > maxWidth && current !== "") {
+            lines.push(current);
+            current = w;
+        } else {
+            current = test;
+        }
+    }
+    if (current) lines.push(current);
+
+    // Timemark dùng lineHeight ~ 1.15–1.2
+    const lineHeight = 39 * scale * 1.18;
+
+    // Vị trí y cho dòng đầu tiên — không đẩy lên như đoạn cũ
+    let textY = bottomY - lines.length * lineHeight + (18 * scale);
+
+    // Vẽ từng dòng
+    ctx.fillStyle = "white";
+    lines.forEach(line => {
+        ctx.fillText(line, paddingX, textY);
+        textY += lineHeight;
+    });
+}
+            // Draw time
+            ctx.font = `${118 * scale}px BigShouldersText`;
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1.5 * scale;
+        ctx.strokeText(timeStr, paddingX - 20 * scale, adjustedY - 145 * scale);
+        ctx.fillText(timeStr, paddingX - 20 * scale, adjustedY - 145 * scale);
+            const timeWidth = ctx.measureText(timeStr).width;
+            const lineGap = 30 * scale;
+            const lineX = (paddingX - 36 * scale) + timeWidth + lineGap;
+
+            // Draw line
+            ctx.strokeStyle = "#fdc630";
+        ctx.lineWidth = 5 * scale;
+        ctx.beginPath();
+        ctx.moveTo(lineX + 10 * scale, adjustedY - 135 * scale);
+        ctx.lineTo(lineX + 10 * scale, adjustedY - 30 * scale);
+        ctx.stroke();
+            // Draw date
+            ctx.font = `${42 * scale}px RobotoCondensed`;
+            ctx.fillStyle = "white";
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 1 * scale;
+
+            ctx.strokeText(dateStr, lineX + 30 * scale, adjustedY - 130 * scale);
+            ctx.fillText(dateStr, lineX + 30 * scale, adjustedY - 130 * scale);
+
+            // Draw day
+            ctx.font = `${40 * scale}px RobotoCondensed`;
+            ctx.strokeText(dayStr, lineX + 30 * scale, adjustedY - 60 * scale);
+            ctx.fillText(dayStr, lineX + 30 * scale, adjustedY - 60 * scale);
+
+            // Draw location
+            ctx.font = `${38 * scale}px RobotoCondensed`;
+            ctx.fillStyle = "white";
+
+            for (let line of lines) {
+    ctx.fillText(line, paddingX - 20 * scale, locationY);
+    locationY += lineHeight;
+}
+            // Draw watermark
+            const wmX = canvas.width - 175 * scale;
+            const wmY = canvas.height - 75 * scale;
+            ctx.font = `${33 * scale}px RobotoMedium`;
+            ctx.fillStyle = '#ffc02d';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 0.1 * scale;
+            ctx.strokeText('Time', wmX, wmY);
+            ctx.fillText('Time', wmX, wmY);
+            ctx.fillStyle = 'white';
+            ctx.strokeText('mark', wmX + 74 * scale, wmY);
+            ctx.fillText('mark', wmX + 74 * scale, wmY);
+            ctx.font = `${22 * scale}px Roboto`;
+            ctx.strokeText('100% Chân thực', wmX, wmY + 37 * scale);
+            ctx.fillText('100% Chân thực', wmX, wmY + 37 * scale);
+
+            // Draw verification text
+            await drawVerificationText(scale, true);
+        
+
+        // Portrait layout function
+        async function applyPortraitLayout(dateStr, timeStr, dayStr, locationStr, scale) {
+            ctx.textBaseline = 'top';
+            const paddingX = 55 * scale;
+            const bottomY = canvas.height - 58 * scale;
+            const maxWidth = canvas.width - paddingX * 5.5;
+
+            // Split location into lines
+            const words = locationStr.split(' ');
+            let lines = [];
+            let currentLine = '';
+            ctx.font = `${39 * scale}px RobotoCondensed`;
+            for (let word of words) {
+                let testLine = currentLine ? currentLine + ' ' + word : word;
+                let testWidth = ctx.measureText(testLine).width;
+                if (testWidth > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+
+            const lineHeight = 39 * scale * 1.2;
+            const offset = (lines.length - 1) * (lineHeight + 10 * scale);
+            const adjustedY = bottomY - offset;
+
+            // Draw time
+            ctx.font = `${112 * scale}px BigShouldersText`;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 0.8 * scale;
+            ctx.strokeText(timeStr, paddingX - 30 * scale, adjustedY - 121 * scale);
+            ctx.fillText(timeStr, paddingX - 30 * scale, adjustedY - 121 * scale);
+
+            const timeWidth = ctx.measureText(timeStr).width;
+            const lineGap = 30 * scale;
+            const lineX = (paddingX - 36 * scale) + timeWidth + lineGap;
+
+            // Draw line
+            ctx.strokeStyle = '#fdc630';
+            ctx.lineWidth = 4 * scale;
+            ctx.beginPath();
+            ctx.moveTo(lineX + 7 * scale, adjustedY - 120 * scale);
+            ctx.lineTo(lineX + 7 * scale, adjustedY - 26 * scale);
+            ctx.stroke();
+
+            // Draw date
+            ctx.font = `${37 * scale}px RobotoCondensed`;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 0.5 * scale;
+            ctx.strokeText(dateStr, lineX + 30 * scale, adjustedY - 122 * scale);
+            ctx.fillText(dateStr, lineX + 30* scale, adjustedY - 122 * scale);
+
+            // Draw day
+            ctx.font = `${36 * scale}px RobotoCondensed`;
+            ctx.strokeText(dayStr, lineX + 30 * scale, adjustedY - 54 * scale);
+            ctx.fillText(dayStr, lineX + 30 * scale, adjustedY - 54 * scale);
+
+            // Draw location
+            let locationY = adjustedY + 8 * scale;
+            ctx.font = `${39 * scale}px RobotoCondensed`;
+            for (let line of lines) {
+                ctx.fillText(line, paddingX - 23 * scale, locationY);
+                locationY += lineHeight;
+            }
+
+            // Draw watermark
+            const wmX = canvas.width - 175 * scale;
+            const wmY = canvas.height - 75 * scale;
+            ctx.font = `${35 * scale}px RobotoMedium`;
+            ctx.fillStyle = '#ffc02d';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 0.1 * scale;
+            ctx.strokeText('Time', wmX, wmY);
+            ctx.fillText('Time', wmX, wmY);
+            ctx.fillStyle = 'white';
+            ctx.strokeText('mark', wmX + 79 * scale, wmY);
+            ctx.fillText('mark', wmX + 79 * scale, wmY);
+            ctx.font = `${22 * scale}px Roboto`;
+            ctx.strokeText('100% Chân thực', wmX, wmY + 37 * scale);
+            ctx.fillText('100% Chân thực', wmX, wmY + 37 * scale);
+
+            // Draw verification text
+            await drawVerificationText(scale, false);
+        }
+
+        // Draw verification text function
+        async function drawVerificationText(scale = 1, isLandscape = false) { 
+            //Sinh mã ngẫu nhiên
+            const randomCode = Array(14).fill().map(() => {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                return chars.charAt(Math.floor(Math.random() * chars.length));
+            }).join('');
+            const verifiedText = ` ${randomCode}  Timemark Verified`;
+            
+            // Tải ảnh 
+            const checkmark = new Image();
+            checkmark.crossOrigin = "anonymous"; 
+            checkmark.src = "https://raw.githubusercontent.com/nguyenduonghoangkhangst-crypto/repo/refs/heads/main/checkmark.png"
+             await new Promise((resolve, reject) => {
+                checkmark.onload = resolve;
+                checkmark.onerror = () => reject('Không thể tải checkmark.png');
+            });
+
+            // Calculate text size
+            ctx.font = `${21 * scale}px RobotoCondensed`;
+            const textMetrics = ctx.measureText(verifiedText);
+            const textWidth = textMetrics.width;
+            const textHeight = 21 * scale;
+            const checkmarkWidth = 21 * scale;
+            const checkmarkHeight = 21 * scale;
+            const totalWidth = checkmarkWidth + textWidth + 10 * scale;
+            const totalHeight = Math.max(checkmarkHeight, textHeight);
+
+            // Create temporary canvas
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = totalWidth;
+            tmpCanvas.height = totalHeight;
+            const tmpCtx = tmpCanvas.getContext('2d');
+            tmpCtx.clearRect(0, 0, totalWidth, totalHeight);
+
+            // Draw checkmark
+            tmpCtx.drawImage(
+                checkmark,
+                isLandscape ? 17 : 13 * scale,
+                (totalHeight - checkmarkHeight) / 2 + (isLandscape ? 3 : 2 * scale),
+                checkmarkWidth,
+                checkmarkHeight
+            );
+
+            // Draw verification text
+            tmpCtx.font = `${21 * scale}px RobotoCondensed`;
+            tmpCtx.strokeStyle = 'black';
+            tmpCtx.lineWidth = 0.5 * scale;
+            tmpCtx.strokeText(
+                verifiedText,
+                checkmarkWidth + 10 * scale,
+                textHeight - 1 * scale
+            );
+            tmpCtx.fillStyle = 'white';
+            tmpCtx.fillText(
+                verifiedText,
+                checkmarkWidth + 10 * scale,
+                textHeight - 1 * scale
+            );
+
+            // Rotate and paste
+            ctx.save();
+            if (isLandscape) {
+                ctx.translate(canvas.width - totalHeight - 10 * scale, canvas.height - totalWidth + 15 * scale);
+            } else {
+                ctx.translate(canvas.width - totalHeight - 10 * scale, canvas.height - totalWidth - 120 * scale);
+            }
+            ctx.rotate(-Math.PI / 2);
+            ctx.drawImage(tmpCanvas, 0, 0);
+            ctx.restore();
+        
+        }
+        // Install PWA prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            const installBtn = document.createElement('button');
+            installBtn.textContent = '📱 Cài đặt App';
+            installBtn.className = 'btn';
+            installBtn.style.marginTop = '10px';
+            installBtn.onclick = () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            };
+            document.querySelector('.container').appendChild(installBtn);
+        });
+    </script>
+</body>
+</html>
