@@ -227,10 +227,10 @@
         // Load fonts using Web Font Loader
         const loadFonts = async () => {
             try {
-                const fontFace1 = new FontFace('BigShouldersText', 'url(/BigShouldersText-Medium.ttf)'); format("truetype")
-                const fontFace2 = new FontFace('RobotoCondensed', 'url(/RobotoCondensed-Regular.ttf)');format("truetype")
-                const fontFace3 = new FontFace('Roboto', 'url(/Roboto-Regular.ttf)');format("truetype")
-                const fontFace4 = new FontFace('RobotoMedium', 'url(/Roboto-Medium.ttf)');format("truetype")
+                const fontFace1 = new FontFace('BigShouldersText', 'url(/BigShouldersText-Medium.ttf) format("truetype")';
+                const fontFace2 = new FontFace('RobotoCondensed', 'url(/RobotoCondensed-Regular.ttf) format("truetype")';
+                const fontFace3 = new FontFace('Roboto', 'url(/Roboto-Regular.ttf) format("truetype")';
+                const fontFace4 = new FontFace('RobotoMedium', 'url(/Roboto-Medium.ttf) format("truetype")';
                 await Promise.all([
                     fontFace1.load(),
                     fontFace2.load(),
@@ -481,7 +481,7 @@
         }
     }
     if (current) lines.push(current);
-
+    const adjustedY = bottomY - lines.length * lineHeight;
     // Timemark dùng lineHeight ~ 1.15–1.2
     const lineHeight = 39 * scale * 1.18;
 
@@ -741,6 +741,7 @@
 </body>
 
 </html>
+
 
 
 
