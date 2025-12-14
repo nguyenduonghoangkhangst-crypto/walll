@@ -481,7 +481,6 @@
         }
     }
     if (current) lines.push(current);
-    const adjustedY = bottomY - lines.length * lineHeight;
     // Timemark dùng lineHeight ~ 1.15–1.2
     const lineHeight = 39 * scale * 1.18;
 
@@ -534,7 +533,6 @@
             for (let line of lines) {
     ctx.fillText(line, paddingX - 20 * scale, locationY);
     locationY += lineHeight;
-}
             // Draw watermark
             const wmX = canvas.width - 175 * scale;
             const wmY = canvas.height - 75 * scale;
@@ -554,7 +552,7 @@
             // Draw verification text
             await drawVerificationText(scale, true);
         
-
+            }
         // Portrait layout function
         async function applyPortraitLayout(dateStr, timeStr, dayStr, locationStr, scale) {
             ctx.textBaseline = 'top';
@@ -741,6 +739,7 @@
 </body>
 
 </html>
+
 
 
 
