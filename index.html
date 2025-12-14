@@ -215,42 +215,32 @@
     <script src="./index_files/jszip.min.js.download"></script>
 
     <script>
-        // Load fonts using Web Font Loader
-       async function loadFonts() {
+async function loadFonts() {
   try {
-    const fontBigShoulders = new FontFace(
-      "BigShouldersText",
-      "url('./fontBigShouldersText-Medium.ttf') format('truetype')"
-    );
-
-    const fontRobotoCondensed = new FontFace(
-      "RobotoCondensed",
-      "url('./RobotoCondensed-Regular.ttf') format('truetype')"
-    );
-
-    const fontRoboto = new FontFace(
-      "Roboto",
-      "url('./Roboto-Regular.ttf') format('truetype')"
-    );
-
-    const fontRobotoMedium = new FontFace(
-      "RobotoMedium",
-      "url('./Roboto-Medium.ttf') format('truetype')"
-    );
+    const fonts = [
+      new FontFace(
+        "BigShouldersText",
+        "url('./fontBigShouldersText-Medium.ttf') format('truetype')"
+      ),
+      new FontFace(
+        "RobotoCondensed",
+        "url('./RobotoCondensed-Regular.ttf') format('truetype')"
+      ),
+      new FontFace(
+        "Roboto",
+        "url('./Roboto-Regular.ttf') format('truetype')"
+      ),
+      new FontFace(
+        "RobotoMedium",
+        "url('./Roboto-Medium.ttf') format('truetype')"
+      )
+    ];
 
     // Load toàn bộ font
-    await Promise.all([
-      fontBigShoulders.load(),
-      fontRobotoCondensed.load(),
-      fontRoboto.load(),
-      fontRobotoMedium.load()
-    ]);
+    await Promise.all(fonts.map(f => f.load()));
 
     // Add vào document
-    document.fonts.add(fontBigShoulders);
-    document.fonts.add(fontRobotoCondensed);
-    document.fonts.add(fontRoboto);
-    document.fonts.add(fontRobotoMedium);
+    fonts.forEach(f => document.fonts.add(f));
 
     console.log("✅ Fonts loaded thành công");
   } catch (err) {
@@ -258,9 +248,11 @@
   }
 }
 
-// GỌI LOAD FONT TRƯỚC KHI DÙNG CANVAS
-loadFonts();
-        
+// 🚀 CHỈ LOAD 1 LẦN – SAU KHI TRANG SẴN SÀNG
+window.addEventListener("load", async () => {
+  await loadFonts();
+  initApp(); // 👈 hàm vẽ canvas / watermark của bạn
+}); <script> 
         // Initialize PWA
         window.onload = async () => {
             await loadFonts();
