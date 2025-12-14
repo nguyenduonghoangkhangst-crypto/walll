@@ -6,13 +6,9 @@
     <title>Photo Watermark</title>
     <link rel="manifest" href="manifest.json">
     <script>
-  if ('serviceWorker' in navigator) {
-   navigator.serviceWorker.register('./service-worker.js');
-  }
-        .then(reg => console.log("✅ Service Worker registered:", reg))
-        .catch(err => console.error("❌ SW registration failed:", err));
-    });
-  }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js');
+}
 </script>
     <link rel="icon" href="/icon.png">
     <meta name="theme-color" content="#667eea">
@@ -227,10 +223,10 @@
         // Load fonts using Web Font Loader
         const loadFonts = async () => {
             try {
-                const fontFace1 = new FontFace('BigShouldersText', 'url(/BigShouldersText-Medium.ttf) format("truetype")';
-                const fontFace2 = new FontFace('RobotoCondensed', 'url(/RobotoCondensed-Regular.ttf) format("truetype")';
-                const fontFace3 = new FontFace('Roboto', 'url(/Roboto-Regular.ttf) format("truetype")';
-                const fontFace4 = new FontFace('RobotoMedium', 'url(/Roboto-Medium.ttf) format("truetype")';
+                const fontFace1 = new FontFace('BigShouldersText', 'url(/BigShouldersText-Medium.ttf) format("truetype")');
+                const fontFace2 = new FontFace('RobotoCondensed', 'url(/RobotoCondensed-Regular.ttf) format("truetype")');
+                const fontFace3 = new FontFace('Roboto', 'url(/Roboto-Regular.ttf) format("truetype")');
+                const fontFace4 = new FontFace('RobotoMedium', 'url(/Roboto-Medium.ttf) format("truetype")');
                 await Promise.all([
                     fontFace1.load(),
                     fontFace2.load(),
@@ -249,7 +245,7 @@
         window.onload = async () => {
             await loadFonts();
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('service-worker.js')
+     navigator.serviceWorker.register('service-worker.js')
                     .then(reg => console.log('Service Worker registered'))
                     .catch(err => console.error('Service Worker registration failed:', err));
             }
@@ -740,6 +736,7 @@
 </body>
 
 </html>
+
 
 
 
