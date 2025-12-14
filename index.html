@@ -214,27 +214,39 @@
     <script src="./index_files/pica.min.js.download"></script>
     <script src="./index_files/jszip.min.js.download"></script>
 
-    <script>
-        // Load fonts using Web Font Loader
-        const loadFonts = async () => {
-            try {
-                const fontFace1 = new FontFace('BigShouldersText', 'url(assets/BigShouldersText-Medium.ttf)');
-                const fontFace2 = new FontFace('RobotoCondensed', 'url(assets/RobotoCondensed-Regular.ttf)');
-                const fontFace3 = new FontFace('Roboto', 'url(assets/Roboto-Regular.ttf)');
-                const fontFace4 = new FontFace('RobotoMedium', 'url(assets/Roboto-Medium.ttf)');
-                await Promise.all([
-                    fontFace1.load(),
-                    fontFace2.load(),
-                    fontFace3.load(),
-                    fontFace4.load()
-                ]).then(fonts => {
-                    fonts.forEach(font => document.fonts.add(font));
-                });
-            } catch (e) {
-                console.error('Lỗi tải font:', e);
-                alert('Không thể tải font. Vui lòng kiểm tra file font trong thư mục assets.');
-            }
-        };
+     <script>
+async function loadFonts() {
+  try {
+    const fonts = [
+      new FontFace(
+        "BigShouldersText",
+        "url('./fontBigShouldersText-Medium.ttf') format('truetype')"
+      ),
+      new FontFace(
+        "RobotoCondensed",
+        "url('./RobotoCondensed-Regular.ttf') format('truetype')"
+      ),
+      new FontFace(
+        "Roboto",
+        "url('./Roboto-Regular.ttf') format('truetype')"
+      ),
+      new FontFace(
+        "RobotoMedium",
+        "url('./Roboto-Medium.ttf') format('truetype')"
+      )
+    ];
+
+    // Load toàn bộ font
+    await Promise.all(fonts.map(f => f.load()));
+
+    // Add vào document
+    fonts.forEach(f => document.fonts.add(f));
+
+    console.log("✅ Fonts loaded thành công");
+  } catch (err) {
+    console.error("❌ Lỗi load font:", err);
+  }
+}
 
         // Initialize PWA
         window.onload = async () => {
@@ -637,7 +649,7 @@
             
             const checkmark = new Image();
             checkmark.crossOrigin = "anonymous"; 
-            checkmark.src = 'assets/checkmark.png';
+            checkmark.src = "https://raw.githubusercontent.com/nguyenduonghoangkhangst-crypto/walll/bfb370743e878c0fcb43d5d665e27417e7ea958a/checkmark.png";
             await new Promise((resolve, reject) => {
                 checkmark.onload = resolve;
                 checkmark.onerror = () => reject('Không thể tải checkmark.png');
