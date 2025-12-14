@@ -486,14 +486,13 @@
 
     // Vị trí y cho dòng đầu tiên — không đẩy lên như đoạn cũ
     let textY = bottomY - lines.length * lineHeight + (18 * scale);
-
+    const adjustedY = textY;
     // Vẽ từng dòng
     ctx.fillStyle = "white";
     lines.forEach(line => {
         ctx.fillText(line, paddingX, textY);
         textY += lineHeight;
     });
-}
             // Draw time
             ctx.font = `${118 * scale}px BigShouldersText`;
         ctx.fillStyle = "white";
@@ -527,12 +526,14 @@
             ctx.fillText(dayStr, lineX + 30 * scale, adjustedY - 60 * scale);
 
             // Draw location
+            let locationY = adjustedY + 10 * scale;
             ctx.font = `${38 * scale}px RobotoCondensed`;
             ctx.fillStyle = "white";
 
             for (let line of lines) {
     ctx.fillText(line, paddingX - 20 * scale, locationY);
     locationY += lineHeight;
+            }
             // Draw watermark
             const wmX = canvas.width - 175 * scale;
             const wmY = canvas.height - 75 * scale;
@@ -739,6 +740,7 @@
 </body>
 
 </html>
+
 
 
 
