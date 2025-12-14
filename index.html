@@ -216,26 +216,43 @@
 
     <script>
         // Load fonts using Web Font Loader
-        const loadFonts = async () => {
-            try {
-                const fontFace1 = new FontFace('BigShouldersText', 'url(/fontBigShouldersText-Medium.ttf)');
-                const fontFace2 = new FontFace('RobotoCondensed', 'url(/RobotoCondensed-Regular.ttf)');
-                const fontFace3 = new FontFace('Roboto', 'url(/Roboto-Regular.ttf)');
-                const fontFace4 = new FontFace('RobotoMedium', 'url(/Roboto-Medium.ttf)');
-                await Promise.all([
-                    fontFace1.load(),
-                    fontFace2.load(),
-                    fontFace3.load(),
-                    fontFace4.load()
-                ]).then(fonts => {
-                    fonts.forEach(font => document.fonts.add(font));
-                });
-            } catch (e) {
-                console.error('Lỗi tải font:', e);
-                alert('Không thể tải font. Vui lòng kiểm tra file font trong thư mục assets.');
-            }
-        };
+        cconst loadFonts = async () => {
+  try {
+    const fontFace1 = new FontFace(
+      'BigShouldersText',
+      'url(./fonts/BigShouldersText-Medium.ttf)'
+    );
 
+    const fontFace2 = new FontFace(
+      'RobotoCondensed',
+      'url(./fonts/RobotoCondensed-Regular.ttf)'
+    );
+
+    const fontFace3 = new FontFace(
+      'Roboto',
+      'url(./fonts/Roboto-Regular.ttf)'
+    );
+
+    const fontFace4 = new FontFace(
+      'RobotoMedium',
+      'url(./fonts/Roboto-Medium.ttf)'
+    );
+
+    const fonts = await Promise.all([
+      fontFace1.load(),
+      fontFace2.load(),
+      fontFace3.load(),
+      fontFace4.load(),
+    ]);
+
+    fonts.forEach(font => document.fonts.add(font));
+
+    console.log('✅ Font đã load thành công');
+  } catch (e) {
+    console.error('❌ Lỗi tải font:', e);
+    alert('Không thể tải font. Vui lòng kiểm tra thư mục fonts.');
+  }
+};
         // Initialize PWA
         window.onload = async () => {
             await loadFonts();
