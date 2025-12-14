@@ -216,43 +216,40 @@
 
     <script>
         // Load fonts using Web Font Loader
-        cconst loadFonts = async () => {
-  try {
-    const fontFace1 = new FontFace(
-      'BigShouldersText',
-      'url(./fonts/BigShouldersText-Medium.ttf)'
-    );
+       const loadFonts = async () => {
+    try {
+        const fontFace1 = new FontFace(
+            'BigShouldersText', 
+            "url(./font/BigShouldersText-Medium.ttf) format('truetype')"
+        );
+        const fontFace2 = new FontFace(
+            'RobotoCondensed', 
+            "url(./font/RobotoCondensed-Regular.ttf) format('truetype')"
+        );
+        const fontFace3 = new FontFace(
+            'Roboto', 
+            "url(./font/Roboto-Regular.ttf) format('truetype')"
+        );
+        const fontFace4 = new FontFace(
+            'RobotoMedium', 
+            "url(./font/Roboto-Medium.ttf) format('truetype')"
+        );
+           await Promise.all([
+            fontFace1.load(),
+            fontFace2.load(),
+            fontFace3.load(),
+            fontFace4.load()
+        ]);
+        document.fonts.add(fontFace1);
+        document.fonts.add(fontFace2);
+        document.fonts.add(fontFace3);
+        document.fonts.add(fontFace4);
 
-    const fontFace2 = new FontFace(
-      'RobotoCondensed',
-      'url(./fonts/RobotoCondensed-Regular.ttf)'
-    );
-
-    const fontFace3 = new FontFace(
-      'Roboto',
-      'url(./fonts/Roboto-Regular.ttf)'
-    );
-
-    const fontFace4 = new FontFace(
-      'RobotoMedium',
-      'url(./fonts/Roboto-Medium.ttf)'
-    );
-
-    const fonts = await Promise.all([
-      fontFace1.load(),
-      fontFace2.load(),
-      fontFace3.load(),
-      fontFace4.load(),
-    ]);
-
-    fonts.forEach(font => document.fonts.add(font));
-
-    console.log('✅ Font đã load thành công');
-  } catch (e) {
-    console.error('❌ Lỗi tải font:', e);
-    alert('Không thể tải font. Vui lòng kiểm tra thư mục fonts.');
-  }
-};
+        console.log('✅ Fonts loaded thành công');
+    } catch (e) {
+        console.error('❌ Lỗi tải font:', e);
+    }
+        }
         // Initialize PWA
         window.onload = async () => {
             await loadFonts();
