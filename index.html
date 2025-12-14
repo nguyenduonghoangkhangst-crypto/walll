@@ -216,41 +216,51 @@
 
     <script>
         // Load fonts using Web Font Loader
-       const loadFonts = async () => {
-    try {
-        const fontFace1 = new FontFace(
-            'BigShouldersText', 
-            "url(./BigShouldersText-Medium.ttf) format('truetype')"
-        );
-        const fontFace2 = new FontFace(
-            'RobotoCondensed', 
-            "url(./RobotoCondensed-Regular.ttf) format('truetype')"
-        );
-        const fontFace3 = new FontFace(
-            'Roboto', 
-            "url(./Roboto-Regular.ttf) format('truetype')"
-        );
-        const fontFace4 = new FontFace(
-            'RobotoMedium', 
-            "url(./Roboto-Medium.ttf) format('truetype')"
-        );
-           await Promise.all([
-            fontFace1.load(),
-            fontFace2.load(),
-            fontFace3.load(),
-            fontFace4.load()
-        ]);
-        document.fonts.add(fontFace1);
-        document.fonts.add(fontFace2);
-        document.fonts.add(fontFace3);
-        document.fonts.add(fontFace4);
+       async function loadFonts() {
+  try {
+    const fontBigShoulders = new FontFace(
+      "BigShouldersText",
+      "url('./fontBigShouldersText-Medium.ttf') format('truetype')"
+    );
 
-        console.log('✅ Fonts loaded thành công');
-    } catch (e) {
-        console.error('❌ Lỗi tải font:', e);
-    }
-        };
+    const fontRobotoCondensed = new FontFace(
+      "RobotoCondensed",
+      "url('./RobotoCondensed-Regular.ttf') format('truetype')"
+    );
 
+    const fontRoboto = new FontFace(
+      "Roboto",
+      "url('./Roboto-Regular.ttf') format('truetype')"
+    );
+
+    const fontRobotoMedium = new FontFace(
+      "RobotoMedium",
+      "url('./Roboto-Medium.ttf') format('truetype')"
+    );
+
+    // Load toàn bộ font
+    await Promise.all([
+      fontBigShoulders.load(),
+      fontRobotoCondensed.load(),
+      fontRoboto.load(),
+      fontRobotoMedium.load()
+    ]);
+
+    // Add vào document
+    document.fonts.add(fontBigShoulders);
+    document.fonts.add(fontRobotoCondensed);
+    document.fonts.add(fontRoboto);
+    document.fonts.add(fontRobotoMedium);
+
+    console.log("✅ Fonts loaded thành công");
+  } catch (err) {
+    console.error("❌ Lỗi load font:", err);
+  }
+}
+
+// GỌI LOAD FONT TRƯỚC KHI DÙNG CANVAS
+loadFonts();
+        
         // Initialize PWA
         window.onload = async () => {
             await loadFonts();
